@@ -1,0 +1,11 @@
+*~
+.vscode
+
+*.py[co]
+__pycache__
+.env
+/static
+*.mo
+*.pot
+
+db.sqlite3
