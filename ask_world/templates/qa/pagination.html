@@ -1,0 +1,21 @@
+<ul class="pagination">
+    {% if items.has_previous %}
+    <li class="page-item"><a class="page-link" href="?page={{ items.previous_page_number }}"> << </a></li>
+    {% else %}
+    <li class="page-item disabled"><span class="page-link" href=""> << </span></li>
+    {% endif %}
+  
+    {% for num in items.paginator.page_range %}
+      {% if num == items.number %}
+      <li class="page-item active"><a class="page-link" href="#"><strong>{{ num }}</strong></a></li>
+      {% else %}
+      <li class="page-item"><a class="page-link" href="?page={{ num }}"> {{ num }} </a></li>
+      {% endif %}
+    {% endfor %}
+  
+    {% if objects.has_next %}
+    <li class="page-item"><a class="page-link" href="?page={{ items.next_page_number }}"> >> </a></li>
+    {% else %}
+    <li class="page-item disabled"><span class="page-link" href=""> >> </span></li>
+    {% endif %}
+</ul>

@@ -1,0 +1,55 @@
+{% extends 'qa/base.html' %}
+{% load staticfiles %}
+{% block title %}Index{% endblock %}
+{% block main %}
+
+<head>
+    <div class="row divider-small"></div>
+    <h4 style="display: inline;">New Questions</h4>
+    <a href="{% url 'hot' %}">
+        <span style="padding-left: 30px;" class="text-danger">
+            <strong>Hot Questions</strong>
+        </span>
+    </a>
+    <div class="row divider-big"></div>
+</head>
+<div class="empty"></div>
+<div class="empty"></div>
+<main>
+    <ul class="list-unstyled">
+        <li class="media">
+            <a href="#">
+                <img src="http://placehold.it/80x80" class="mr-4" alt="">
+            </a>
+            <div class="media-body">
+                <div class="row">
+                    <div class="col-10">
+                        <p class="tags">
+                            <a href="#">СТРОЙКА</a>
+                            <a href="#">ТУПЫЕ ВОПРОСЫ</a>
+                        </p>
+                        <h5 class="mt-2 mb-3">
+                            <a href="#" class="question-title">Как построить лунапарк у себя в районе?</a>
+                        </h5>
+                        <p class="question-meta">
+                            <span>17.01.18</span>
+                            <span>1200 просмотров</span>
+                            <span>Рейтинг 100/15</span>
+                        </p>
+                    </div>
+                    <a href="#" class="col-2 text-center answers-count">
+                        <h5 class="text-success"><strong>✓ 5</strong></h5>
+                        <h6 class="text-secondary">ответов</h6>
+                    </a>
+                    <div class="col-12 empty"></div>
+                </div>
+            </div>
+        </li>
+    </ul>
+    <div class="empty"></div>
+    {% include 'qa/pagination.html' %}
+    <div class="empty"></div>
+
+</main>
+
+{% endblock %}

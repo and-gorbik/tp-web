@@ -1,0 +1,105 @@
+:root {
+    --page-width: 70vw;
+    --page-min-width: 320px;
+    --page-min-height: 100vh;
+}
+
+a, a:hover, a:active {
+    color: var(--secondary) !important;
+    text-decoration: none !important;
+    outline: none !important;
+}
+
+body {
+    font-family: 'Lato', sans-serif;
+}
+
+button:focus, button:active {
+    outline: none !important;
+    box-shadow: none !important;
+}
+
+input[type="search"]::placeholder {
+    color: var(--secondary);
+    opacity: 0.5;
+}
+
+#page {
+    width: var(--page-width);
+    min-height: var(--page-min-height);
+    margin: 0 auto;
+}
+
+#dropdownMenuButton {
+    background-color: var(--white);
+    font-size: 14pt;
+}
+
+.icon:hover {
+    color: var(--danger);
+    cursor: pointer;
+}
+
+a.profile_image {
+    display: block;
+}
+
+a.profile_image img {
+    display: block;
+    width: 100%;
+    height: auto;
+}
+
+.empty {
+    height: 25px;
+}
+
+.tags {
+    font-size: 70%;
+    font-weight: 700;
+    margin: 0;
+}
+
+.tags a::before {
+    padding-left: 5px;
+    padding-right: 5px;
+    content: '•';
+}
+
+.aside-tags {
+    font-size: 85%;
+    margin: 0;
+}
+
+.aside-tags a {
+    padding: 3px;
+}
+
+.question-meta {
+    font-size: 75%;
+    color: var(--secondary);
+    margin: 0;
+}
+
+.question-meta span::before {
+    padding-left: 5px;
+    padding-right: 5px;
+    content: ' ';  
+}
+
+.question-title {
+    color: var(--default) !important;
+}
+
+.answers-count {
+    display: block;
+}
+
+.answers-count h6:hover {
+    text-decoration: underline !important;
+}
+
+i.fa-thumbs-up:hover, i.fa-thumbs-down:hover {
+    transform: scale(1.1);
+    color: var(--danger);
+}

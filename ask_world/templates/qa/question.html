@@ -1,0 +1,207 @@
+{% extends 'qa/base.html' %}
+{% load staticfiles %}
+{% block title %}
+Question
+{% endblock %}
+{% block main %}
+
+<figure class="question">
+    <div class="media">
+        <a href="#">
+            <img src="http://placehold.it/80x80" class="mr-4" alt="">
+        </a>
+        <div class="media-body">
+            <div class="row">
+                <div class="col-10">
+                    <h4 class="mt-2 mb-3">
+                        Как построить лунапарк у себя в районе?
+                    </h4>
+                    <p class="description">
+                        Lorem ipsum dolor sit amet consectetur adipisicing elit. Praesentium rem, amet dignissimos
+                        veniam quis exercitationem sapiente esse soluta modi natus repudiandae recusandae unde earum
+                        non cum reprehenderit accusantium quidem voluptates!
+                        Lorem ipsum dolor sit amet consectetur adipisicing elit. Harum cumque sunt vero in optio
+                        impedit magni sint laboriosam, dolorem voluptatem maxime, rem corrupti accusantium adipisci
+                        enim nisi corporis, sed totam.
+                    </p>
+                    <hr>
+                    <div class="row">
+                        <p class="col tags">
+                            <a href="#">СТРОЙКА</a>
+                            <a href="#">ТУПЫЕ ВОПРОСЫ</a>
+                        </p>
+                        <p class="col question-meta text-right">
+                            <i class="fa fa-eye"></i> 1200&nbsp;&nbsp;&nbsp;
+                            <i class="far fa-calendar-alt"></i> 17.01.2018
+                        </p>
+                    </div>
+                </div>
+                <div class="col-2 m-auto text-center">
+                    <h5 class="text-secondary">
+                        100/15<br>
+                        <a href="#"><i class="far fa-thumbs-up"></i></a>
+                        <a href="#"><i class="far fa-thumbs-down"></i></a>
+                    </h5>
+                    <div class="empty"></div>
+                    <a href="#"><span class="btn btn-sm btn-outline-secondary">Ответить</span></a>
+                </div>
+                <div class="col-12 empty"></div>
+            </div>
+        </div>
+    </div>
+</figure>
+<div class="empty"></div>
+<h4>Ответы</h4>
+<div class="empty"></div>
+<figure class="answer">
+    <div class="media">
+        <a href="#">
+            <img src="http://placehold.it/80x80" class="mr-4" alt="">
+        </a>
+        <div class="media-body">
+            <div class="row">
+                <div class="col-10">
+                    <p class="description">
+                        Lorem ipsum dolor sit amet consectetur adipisicing elit. Praesentium rem, amet dignissimos
+                        veniam quis exercitationem sapiente esse soluta modi natus repudiandae recusandae unde
+                        earum non cum reprehenderit accusantium quidem voluptates!
+                        Lorem ipsum dolor sit amet consectetur adipisicing elit. Harum cumque sunt vero in optio
+                        impedit magni sint laboriosam, dolorem voluptatem maxime, rem corrupti accusantium adipisci
+                        enim nisi corporis, sed totam.
+                    </p>
+                    <hr>
+                    <div class="row">
+                        <div class="col">
+                            <button class="btn btn-sm btn-secondary" data-toggle="collapse" data-target="#comments1">
+                                Комментарии <span class="badge badge-light">2</span>
+                            </button>
+                        </div>
+                        <div class="col question-meta text-right">
+                            <i class="far fa-calendar-alt"></i> 17.01.2018
+                        </div>
+                    </div>
+                </div>
+                <div class="col-2 m-auto text-center">
+                    <h5 class="text-secondary">
+                        100/15<br>
+                        <a href="#"><i class="far fa-thumbs-up"></i></a>
+                        <a href="#"><i class="far fa-thumbs-down"></i></a>
+                    </h5>
+                    <div class="empty"></div>
+                    <h5 class="text-success">
+                        <span class="fas fa-check" title="This answer is useful"></span>
+                    </h5>
+                </div>
+                <div class="col-12 empty"></div>
+                <div id="comments1" class="collapse">
+                    <figure class="comment">
+                        <div class="col-10 media">
+                            <a href="#">
+                                <img src="http://placehold.it/80x80" class="mr-4" alt="">
+                            </a>
+                            <div class="media-body">
+                                <p class="description">
+                                    Lorem ipsum dolor sit amet consectetur adipisicing elit. Praesentium rem, amet
+                                    dignissimos
+                                    veniam quis exercitationem sapiente esse soluta modi natus repudiandae recusandae
+                                    unde
+                                    earum non cum reprehenderit accusantium quidem voluptates!
+                                    Lorem ipsum dolor sit amet consectetur adipisicing elit. Harum cumque sunt vero in
+                                    optio
+                                    impedit magni sint laboriosam, dolorem voluptatem maxime, rem corrupti accusantium
+                                    adipisci
+                                    enim nisi corporis, sed totam.
+                                </p>
+                            </div>
+                        </div>
+                    </figure>
+                    <figure class="comment">
+                        <div class="col-10 media">
+                            <a href="#">
+                                <img src="http://placehold.it/80x80" class="mr-4" alt="">
+                            </a>
+                            <div class="media-body">
+                                <p class="description">
+                                    Lorem ipsum dolor sit amet consectetur adipisicing elit. Praesentium rem, amet
+                                    dignissimos
+                                    veniam quis exercitationem sapiente esse soluta modi natus repudiandae recusandae
+                                    unde
+                                    earum non cum reprehenderit accusantium quidem voluptates!
+                                    Lorem ipsum dolor sit amet consectetur adipisicing elit. Harum cumque sunt vero in
+                                    optio
+                                    impedit magni sint laboriosam, dolorem voluptatem maxime, rem corrupti accusantium
+                                    adipisci
+                                    enim nisi corporis, sed totam.
+                                </p>
+                            </div>
+                        </div>
+                    </figure>
+                    <div class="col-10">
+                        <form method="POST">
+                            <textarea class="form-control" rows="3" placeholder="Напишите комментарий"></textarea>
+                            <button type="submit" class="btn btn-sm btn-outline-secondary mt-1">Отправить</button>
+                        </form>
+                    </div>
+                    <div class="col-12 empty"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</figure>
+<figure class="answer">
+    <div class="media">
+        <a href="#">
+            <img src="http://placehold.it/80x80" class="mr-4" alt="">
+        </a>
+        <div class="media-body">
+            <div class="row">
+                <div class="col-10">
+                    <p class="description">
+                        Lorem ipsum dolor sit amet consectetur adipisicing elit. Praesentium rem, amet dignissimos
+                        veniam quis exercitationem sapiente esse soluta modi natus repudiandae recusandae unde
+                        earum non cum reprehenderit accusantium quidem voluptates!
+                        Lorem ipsum dolor sit amet consectetur adipisicing elit. Harum cumque sunt vero in optio
+                        impedit magni sint laboriosam, dolorem voluptatem maxime, rem corrupti accusantium adipisci
+                        enim nisi corporis, sed totam.
+                    </p>
+                    <hr>
+                    <div class="row">
+                        <div class="col">
+                            <button class="btn btn-sm btn-secondary" data-toggle="collapse" data-target="#comments2">
+                                Комментировать
+                            </button>
+                        </div>
+                        <div class="col question-meta text-right">
+                            <i class="far fa-calendar-alt"></i> 17.01.2018
+                        </div>
+                    </div>
+                </div>
+                <div class="col-2 m-auto text-center">
+                    <h5 class="text-secondary">
+                        1/0<br>
+                        <a href="#"><i class="far fa-thumbs-up"></i></a>
+                        <a href="#"><i class="far fa-thumbs-down"></i></a>
+                    </h5>
+                    <div class="empty"></div>
+                    <!-- <h5 class="text-success">
+                        <span class="fas fa-check" title="This answer is useful"></span>
+                    </h5> -->
+                </div>
+                <div class="container empty"></div>
+                <div id="comments2" class="collapse container">
+                    <div class="row">
+                        <div class="col-10">
+                            <form method="POST">
+                                <textarea class="form-control" rows="3" placeholder="Напишите комментарий"></textarea>
+                                <button type="submit" class="btn btn-sm btn-outline-secondary mt-1">Отправить</button>
+                            </form>
+                        </div>
+                    </div>
+                    <div class="container empty"></div>     
+                </div>
+            </div>
+        </div>
+    </div>
+</figure>
+
+{% endblock %}
