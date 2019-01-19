@@ -1,167 +1,154 @@
-from django.db import models, IntegrityError
+from django.db import models
+from django.db.models.signals import pre_save
+# from django.contrib.postgres.indexes import BrinIndex
 from django.contrib.auth.models import User
-from django.core.exceptions import MultipleObjectsReturned
+from .managers import QuestionManager, AnswerManager, CommentManager
 
 class Profile(models.Model):
-    avatar = models.ImageField("Avatar", upload_to="qa/avatars/img_{}".format(id), blank=True, default=None)
     user = models.OneToOneField(User, on_delete=models.CASCADE)
+    avatar = models.ImageField(upload_to="qa/avatars/img_{}".format(user), blank=True, default="qa/avatars/default")
+
+    class Meta:
+        db_table = 'profile'
+    
+    def url(self):
+        return "/profiles/{}/".format(self.pk)
 
 
 class Tag(models.Model):
-    name = models.CharField(max_length=100, unique=True)
-
-    def __str__(self):
-        return self.name
+    name = models.CharField(max_length=100, unique=True, null=True)
 
     def url(self):
         return "/tags/{}/".format(self.name)
 
     @staticmethod
     def replace_spaces(tagname):
-        return "_".join(tagname.split())
-
-
-
-# интерфейс
-class LikedContent(models.Model):
-    NAME_CHOICES = (
-        ('0', 'answer'),
-        ('1', 'question'),
-    )
-
-    name = models.CharField(max_length=1, choices=NAME_CHOICES)
-    likes = models.ManyToManyField(Profile, through='Like')
-
-
-
-class QuestionManager(models.Manager):
-
-    def best(self, limit=10):
-        return self.order_by('-like_counter')[:limit]
-
-
-    def last(self, limit=10):
-        return self.order_by('-added_at')[:limit]
-
-
-    def get_by_tagname(self, tagname):
-        return self.filter(tags__name=Tag.replace_spaces(tagname))
-
-
+        return "_".join(tagname.strip().split())
+    
+    class Meta:
+        db_table = 'tag'
 
 
 class Question(models.Model):
-    title = models.CharField("Title", max_length=200, default="")
-    description = models.TextField("Description", default="", blank=True)
-    added_at = models.DateField("Added at", auto_now_add=True)
-    like_counter = models.PositiveIntegerField("Like's counter", default=0)
-    dislike_counter = models.PositiveIntegerField("Dislike's counter", default=0)
+    title = models.CharField(max_length=200, default="")
+    description = models.TextField(default="")
+    added_at = models.DateField(auto_now_add=True)
+    num_likes = models.PositiveIntegerField(default=0)
+    num_dislikes = models.PositiveIntegerField(default=0)
     tags = models.ManyToManyField(Tag)
-    author = models.ForeignKey(Profile, on_delete=models.CASCADE)
-    content = models.OneToOneField(LikedContent, on_delete=models.CASCADE)
+    author = models.ForeignKey(Profile, on_delete=models.SET_NULL, null=True)
     objects = QuestionManager()
 
     class Meta:
         ordering = ['-added_at']
-
-    def __str__(self):
-        return self.title
+        db_table = 'question'
+        # indexes = (
+        #     BrinIndex(fields=['added_at']),
+        # )
 
     def url(self):
         return "/questions/{}/".format(self.pk)
 
-    def like(self, profile, positive=True):
-        # можно использовать get_or_create(), но я с ним запутался
+    def add_like(self, author, positive=True):
         try:
-            like = Like.objects.get(content=self.content, profile=profile)
+            like = QuestionLike.objects.get(content=self, author=author)
             
             # если дизлайк будет заменен на лайк
             if positive and not like.is_positive:
-                self.dislike_counter -= 1
-                self.like_counter += 1
+                self.num_dislikes -= 1
+                self.num_likes += 1
             
             # если лайк будет заменен на дизлайк
             if not positive and like.is_positive:
-                self.dislike_counter += 1
-                self.like_counter -= 1
+                self.num_dislikes += 1
+                self.num_likes -= 1
             
             like.is_positive = positive
-        
-        except Like.DoesNotExist:
-            like = Like(content=self.content, profile=profile, is_positive=positive)
+        except QuestionLike.DoesNotExist:
+            like = QuestionLike(content=self, author=author, is_positive=positive)
             if positive:
-                self.like_counter += 1
+                self.num_likes += 1
             else:
-                self.dislike_counter += 1
-
+                self.num_dislikes += 1
         like.save()
-    
-    def add_tag(self, tagname):
-        tagname = Tag.replace_spaces(tagname)
-        tag, _ = Question.objects.get_or_create(name=tagname)
-        self.tags.add(tag)
-
-
-class AnswerManager(models.Manager):
-
-    def get_by_question(self, question, limit=10):
-        return self.filter(question=question).order_by('-like_counter')[:limit]
+        self.save()
 
 
 class Answer(models.Model):
-    description = models.TextField(default="", blank=True)
+    description = models.TextField(default="")
     added_at = models.DateField(auto_now_add=True)
-    like_counter = models.PositiveIntegerField(default=0)
-    dislike_counter = models.PositiveIntegerField(default=0)
+    num_likes = models.PositiveIntegerField(default=0)
+    num_dislikes = models.PositiveIntegerField(default=0)
+    num_comments = models.PositiveIntegerField(default=0)
     is_marked = models.BooleanField(default=False)
     question = models.ForeignKey(Question, on_delete=models.CASCADE)
-    author = models.ForeignKey(Profile, on_delete=models.CASCADE)
-    content = models.OneToOneField(LikedContent, on_delete=models.CASCADE)
+    author = models.ForeignKey(Profile, on_delete=models.SET_NULL, null=True)
     objects = AnswerManager()
 
-
-    def __str__(self):
-        return "Answer" + str(self.pk)
+    class Meta:
+        db_table = 'answer'
 
     def url(self):
         return "/answers/{}/".format(self.pk)
 
-    def like(self, profile, positive=True):
+    def add_like(self, author, positive=True):
         try:
-            like = Like.objects.get(content=self.content, profile=profile)
+            like = AnswerLike.objects.get(content=self, author=author)
             
             # если дизлайк будет заменен на лайк
             if positive and not like.is_positive:
-                self.dislike_counter -= 1
-                self.like_counter += 1
+                self.num_dislikes -= 1
+                self.num_likes += 1
             
             # если лайк будет заменен на дизлайк
             if not positive and like.is_positive:
-                self.dislike_counter += 1
-                self.like_counter -= 1
+                self.num_dislikes += 1
+                self.num_likes -= 1
             
             like.is_positive = positive
-        
-        except Like.DoesNotExist:
-            like = Like(content=self.content, profile=profile, is_positive=positive)
+        except AnswerLike.DoesNotExist:
+            like = AnswerLike(content=self, author=author, is_positive=positive)
             if positive:
-                self.like_counter += 1
+                self.num_likes += 1
             else:
-                self.dislike_counter += 1
-
+                self.num_dislikes += 1
         like.save()
-
-    def mark(self):
-        self.is_marked = True
+        self.save()
 
 
-# промежуточная таблица связи многие-ко-многим 
-# "LikedContent" - "Person"
 class Like(models.Model):
-    content = models.ForeignKey(LikedContent, on_delete=models.CASCADE)
-    profile = models.ForeignKey(Profile, on_delete=models.CASCADE)
-    is_positive = models.BooleanField(default=None)  # True if like else dislike
+    content = None
+    author = models.ForeignKey(Profile, on_delete=models.SET_NULL, null=True)
+    is_positive = models.BooleanField(default=None)
 
     class Meta:
-        unique_together = ("content", "profile")
+        abstract = True
 
+class QuestionLike(Like):
+    content = models.ForeignKey(Question, on_delete=models.CASCADE)
+
+    class Meta:
+        db_table = 'question_like'
+
+class AnswerLike(Like):
+    content = models.ForeignKey(Answer, on_delete=models.CASCADE)
+
+    class Meta:
+        db_table = 'answer_like'
+
+class Comment(models.Model):
+    description = models.TextField(default="")
+    added_at = models.DateField(auto_now_add=True)
+    author = models.ForeignKey(Profile, on_delete=models.SET_NULL, null=True)
+    answer = models.ForeignKey(Answer, on_delete=models.CASCADE)
+    objects = CommentManager()
+
+    class Meta:
+        db_table = 'comment'
+        ordering = ['-added_at']
+
+
+def ensure_correct_tag_name(sender, instance, *args, **kwargs):
+    instance.name = sender.replace_spaces(instance.name)
+
+pre_save.connect(ensure_correct_tag_name, sender=Tag)
