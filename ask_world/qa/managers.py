@@ -24,3 +24,10 @@ class CommentManager(models.Manager):
 
     def get_by_answer(self, answer, limit=10):
         return self.filter(answer=answer).order_by('-added_at')[:limit]
+
+
+class TagManager(models.Manager):
+
+    # возвращает множество самых используемых тегов
+    def best(self, limit=10):
+        pass

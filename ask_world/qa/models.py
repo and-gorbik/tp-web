@@ -1,12 +1,14 @@
 from django.db import models
 from django.db.models.signals import pre_save
+# from django.utils.text import slugify
 # from django.contrib.postgres.indexes import BrinIndex
 from django.contrib.auth.models import User
 from .managers import QuestionManager, AnswerManager, CommentManager
+from .managers import TagManager
 
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    avatar = models.ImageField(upload_to="qa/avatars/img_{}".format(user), blank=True, default="qa/avatars/default")
+    avatar = models.ImageField(upload_to="qa/avatars/img_{}.jpg".format(user), blank=True, default="qa/avatars/default.jpg")
 
     class Meta:
         db_table = 'profile'
@@ -17,6 +19,10 @@ class Profile(models.Model):
 
 class Tag(models.Model):
     name = models.CharField(max_length=100, unique=True, null=True)
+    objects = TagManager()
+
+    def str(self):
+        return " ".join(name.split('_'))
 
     def url(self):
         return "/tags/{}/".format(self.name)

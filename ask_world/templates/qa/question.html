@@ -137,7 +137,7 @@ Question
                         </div>
                     </figure>
                     <div class="col-10">
-                        <form method="POST">
+                        <form method="POST">{% csrf_token %}
                             <textarea class="form-control" rows="3" placeholder="Напишите комментарий"></textarea>
                             <button type="submit" class="btn btn-sm btn-outline-secondary mt-1">Отправить</button>
                         </form>
@@ -191,7 +191,7 @@ Question
                 <div id="comments2" class="collapse container">
                     <div class="row">
                         <div class="col-10">
-                            <form method="POST">
+                            <form method="POST">{% csrf_token %}
                                 <textarea class="form-control" rows="3" placeholder="Напишите комментарий"></textarea>
                                 <button type="submit" class="btn btn-sm btn-outline-secondary mt-1">Отправить</button>
                             </form>
