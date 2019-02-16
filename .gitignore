@@ -4,6 +4,7 @@
 *.py[co]
 __pycache__
 .env
+env
 /static
 *.mo
 *.pot
