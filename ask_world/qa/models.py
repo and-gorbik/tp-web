@@ -9,9 +9,6 @@ from .managers import TagManager
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     avatar = models.ImageField(upload_to="qa/avatars/img_{}.jpg".format(user), blank=True, default="qa/avatars/default.jpg")
-
-    class Meta:
-        db_table = 'profile'
     
     def url(self):
         return "/profiles/{}/".format(self.pk)
@@ -30,9 +27,7 @@ class Tag(models.Model):
     @staticmethod
     def replace_spaces(tagname):
         return "_".join(tagname.strip().split())
-    
-    class Meta:
-        db_table = 'tag'
+
 
 
 class Question(models.Model):
@@ -47,7 +42,6 @@ class Question(models.Model):
 
     class Meta:
         ordering = ['-added_at']
-        db_table = 'question'
         # indexes = (
         #     BrinIndex(fields=['added_at']),
         # )
@@ -56,28 +50,41 @@ class Question(models.Model):
         return "/questions/{}/".format(self.pk)
 
     def add_like(self, author, positive=True):
+        if positive == None:
+            return
         try:
             like = QuestionLike.objects.get(content=self, author=author)
+            # отмена лайка/дизлайка
+            if positive == like.is_positive:
+                like.is_positive = None
+                if positive:
+                    self.num_likes -= 1
+                else:
+                    self.num_dislikes -= 1
+            else:
+                # если дизлайк будет заменен на лайк
+                if positive and not like.is_positive:
+                    self.num_dislikes -= 1
+                    self.num_likes += 1
             
-            # если дизлайк будет заменен на лайк
-            if positive and not like.is_positive:
-                self.num_dislikes -= 1
-                self.num_likes += 1
-            
-            # если лайк будет заменен на дизлайк
-            if not positive and like.is_positive:
-                self.num_dislikes += 1
-                self.num_likes -= 1
-            
-            like.is_positive = positive
+                # если лайк будет заменен на дизлайк
+                if not positive and like.is_positive:
+                    self.num_dislikes += 1
+                    self.num_likes -= 1
+
+                like.is_positive = positive
         except QuestionLike.DoesNotExist:
             like = QuestionLike(content=self, author=author, is_positive=positive)
             if positive:
                 self.num_likes += 1
             else:
                 self.num_dislikes += 1
-        like.save()
-        self.save()
+        finally:
+            like.save()
+            self.save()
+    
+    def liked(self, author):
+        return QuestionLike.objects.filter(content=self, author=author).first().is_positive
 
 
 class Answer(models.Model):
@@ -90,9 +97,6 @@ class Answer(models.Model):
     question = models.ForeignKey(Question, on_delete=models.CASCADE)
     author = models.ForeignKey(Profile, on_delete=models.SET_NULL, null=True)
     objects = AnswerManager()
-
-    class Meta:
-        db_table = 'answer'
 
     def url(self):
         return "/answers/{}/".format(self.pk)
@@ -130,17 +134,12 @@ class Like(models.Model):
     class Meta:
         abstract = True
 
+
 class QuestionLike(Like):
     content = models.ForeignKey(Question, on_delete=models.CASCADE)
 
-    class Meta:
-        db_table = 'question_like'
-
 class AnswerLike(Like):
     content = models.ForeignKey(Answer, on_delete=models.CASCADE)
-
-    class Meta:
-        db_table = 'answer_like'
 
 class Comment(models.Model):
     description = models.TextField(default="")
@@ -150,7 +149,6 @@ class Comment(models.Model):
     objects = CommentManager()
 
     class Meta:
-        db_table = 'comment'
         ordering = ['-added_at']
 
 
