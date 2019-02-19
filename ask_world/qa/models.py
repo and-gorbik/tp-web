@@ -1,33 +1,33 @@
 from django.db import models
 from django.db.models.signals import pre_save
-# from django.utils.text import slugify
+from django.dispatch import receiver
+from django.shortcuts import reverse
+from django.utils.text import slugify
 # from django.contrib.postgres.indexes import BrinIndex
-from django.contrib.auth.models import User
-from .managers import QuestionManager, AnswerManager, CommentManager
-from .managers import TagManager
+from django.contrib.auth import get_user_model
+from . import managers
 
 class Profile(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    user = models.OneToOneField(get_user_model(), on_delete=models.CASCADE)
     avatar = models.ImageField(upload_to="qa/avatars/img_{}.jpg".format(user), blank=True, default="qa/avatars/default.jpg")
-    
-    def url(self):
-        return "/profiles/{}/".format(self.pk)
+
+    def __str__(self):
+        return self.user.username
+
+    def get_absolute_url(self):
+        return reverse('profile', kwargs={'pk': self.pk})
 
 
 class Tag(models.Model):
     name = models.CharField(max_length=100, unique=True, null=True)
-    objects = TagManager()
+    slug = models.SlugField(max_length=150, default="", allow_unicode=True, editable=False)
+    objects = managers.TagManager()
 
-    def str(self):
-        return " ".join(name.split('_'))
+    def __str__(self):
+        return self.name
 
-    def url(self):
-        return "/tags/{}/".format(self.name)
-
-    @staticmethod
-    def replace_spaces(tagname):
-        return "_".join(tagname.strip().split())
-
+    def get_absolute_url(self):
+        return reverse('tag', kwargs={'slug': self.slug})
 
 
 class Question(models.Model):
@@ -38,7 +38,7 @@ class Question(models.Model):
     num_dislikes = models.PositiveIntegerField(default=0)
     tags = models.ManyToManyField(Tag)
     author = models.ForeignKey(Profile, on_delete=models.SET_NULL, null=True)
-    objects = QuestionManager()
+    objects = managers.QuestionManager()
 
     class Meta:
         ordering = ['-added_at']
@@ -46,45 +46,14 @@ class Question(models.Model):
         #     BrinIndex(fields=['added_at']),
         # )
 
-    def url(self):
-        return "/questions/{}/".format(self.pk)
+    def __str__(self):
+        return self.title[:100] + "..."
 
-    def add_like(self, author, positive=True):
-        if positive == None:
-            return
-        try:
-            like = QuestionLike.objects.get(content=self, author=author)
-            # отмена лайка/дизлайка
-            if positive == like.is_positive:
-                like.is_positive = None
-                if positive:
-                    self.num_likes -= 1
-                else:
-                    self.num_dislikes -= 1
-            else:
-                # если дизлайк будет заменен на лайк
-                if positive and not like.is_positive:
-                    self.num_dislikes -= 1
-                    self.num_likes += 1
-            
-                # если лайк будет заменен на дизлайк
-                if not positive and like.is_positive:
-                    self.num_dislikes += 1
-                    self.num_likes -= 1
-
-                like.is_positive = positive
-        except QuestionLike.DoesNotExist:
-            like = QuestionLike(content=self, author=author, is_positive=positive)
-            if positive:
-                self.num_likes += 1
-            else:
-                self.num_dislikes += 1
-        finally:
-            like.save()
-            self.save()
+    def get_absolute_url(self):
+        return reverse('question', kwargs={'pk': self.pk})
     
     def liked(self, author):
-        return QuestionLike.objects.filter(content=self, author=author).first().is_positive
+        return QuestionLike.objects.filter(target=self, author=author).first().is_positive
 
 
 class Answer(models.Model):
@@ -96,63 +65,49 @@ class Answer(models.Model):
     is_marked = models.BooleanField(default=False)
     question = models.ForeignKey(Question, on_delete=models.CASCADE)
     author = models.ForeignKey(Profile, on_delete=models.SET_NULL, null=True)
-    objects = AnswerManager()
+    objects = managers.AnswerManager()
 
-    def url(self):
-        return "/answers/{}/".format(self.pk)
+    def __str__(self):
+        return self.description[:100] + "..."
 
-    def add_like(self, author, positive=True):
-        try:
-            like = AnswerLike.objects.get(content=self, author=author)
-            
-            # если дизлайк будет заменен на лайк
-            if positive and not like.is_positive:
-                self.num_dislikes -= 1
-                self.num_likes += 1
-            
-            # если лайк будет заменен на дизлайк
-            if not positive and like.is_positive:
-                self.num_dislikes += 1
-                self.num_likes -= 1
-            
-            like.is_positive = positive
-        except AnswerLike.DoesNotExist:
-            like = AnswerLike(content=self, author=author, is_positive=positive)
-            if positive:
-                self.num_likes += 1
-            else:
-                self.num_dislikes += 1
-        like.save()
-        self.save()
-
+    def liked(self, author):
+        return AnswerLike.objects.filter(target=self, author=author).first().is_positive
 
 class Like(models.Model):
-    content = None
+    target = None
     author = models.ForeignKey(Profile, on_delete=models.SET_NULL, null=True)
     is_positive = models.BooleanField(default=None)
+    objects = managers.LikeManager()
 
     class Meta:
         abstract = True
 
 
 class QuestionLike(Like):
-    content = models.ForeignKey(Question, on_delete=models.CASCADE)
+    target = models.ForeignKey(Question, on_delete=models.CASCADE)
+    objects = managers.LikeManager()
 
 class AnswerLike(Like):
-    content = models.ForeignKey(Answer, on_delete=models.CASCADE)
+    target = models.ForeignKey(Answer, on_delete=models.CASCADE)
+    objects = managers.LikeManager()
+
 
 class Comment(models.Model):
     description = models.TextField(default="")
     added_at = models.DateField(auto_now_add=True)
     author = models.ForeignKey(Profile, on_delete=models.SET_NULL, null=True)
     answer = models.ForeignKey(Answer, on_delete=models.CASCADE)
-    objects = CommentManager()
+    objects = managers.CommentManager()
 
     class Meta:
         ordering = ['-added_at']
 
+    def __str__(self):
+        return self.description[:100] + "..."
 
+
+# Signals
+
+@receiver(pre_save, sender=Tag)
 def ensure_correct_tag_name(sender, instance, *args, **kwargs):
-    instance.name = sender.replace_spaces(instance.name)
-
-pre_save.connect(ensure_correct_tag_name, sender=Tag)
+    instance.slug = slugify(instance.name)
