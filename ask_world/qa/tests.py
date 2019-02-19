@@ -1,8 +1,10 @@
 from django.test import TestCase
 from django.contrib.auth import get_user_model
-from .models import Profile, Question, Answer, QuestionLike, AnswerLike
+from .models import Profile, Question, Answer, QuestionLike, AnswerLike, Tag
 
 class LikeTestCase(TestCase):
+    """ test likes system """
+
     def setUp(self):
         User = get_user_model()
         Andrey = Profile.objects.create(
@@ -58,7 +60,7 @@ class LikeTestCase(TestCase):
         self.assertEqual(answer.num_likes, 1)
         self.assertEqual(answer.num_dislikes, 0)    
 
-    def test_question_is_liked(self):
+    def test_question_and_answer_are_liked(self):
         profile = Profile.objects.first()
         question = Question.objects.first()
         answer = Answer.objects.first()
@@ -70,3 +72,76 @@ class LikeTestCase(TestCase):
         AnswerLike.objects.add(author=profile, target=answer, is_positive=False)
         self.assertEqual(question.liked(author=profile), None)
         self.assertEqual(answer.liked(author=profile), None)
+
+
+class ProfileTestCase(TestCase):
+    """ test CRUD operations with Profile """
+
+    def setUp(self):
+        get_user_model().objects.create_user("Andrey")
+
+    def test_create_profile(self):
+        user = get_user_model().objects.first()
+        p = Profile.objects.create(user=user)
+        self.assertEqual(p.user.username, "Andrey")
+
+    def test_retrieve_profile(self):
+        user = get_user_model().objects.first()
+        Profile.objects.create(user=user)
+        self.assertEqual(Profile.objects.count(), 1)
+
+    def test_update_profile(self):
+        user1 = get_user_model().objects.first()
+        user2 = get_user_model().objects.create_user("Peter")
+        p = Profile.objects.create(user=user1)
+        p.user = user2
+        p.save(update_fields=['user'])
+        self.assertEqual(p.user.username, "Peter")
+
+    def test_delete_profile(self):
+        user = get_user_model().objects.first()
+        p = Profile.objects.create(user=user)
+        p.delete()
+        self.assertEqual(Profile.objects.count(), 0)
+        self.assertEqual(get_user_model().objects.count(), 1)     
+
+    def test_delete_profile_cascade(self):
+        user = get_user_model().objects.first()
+        Profile.objects.create(user=user)
+        user.delete()
+        self.assertEqual(Profile.objects.count(), 0)
+        self.assertEqual(get_user_model().objects.count(), 0)
+
+
+class TagTestCase(TestCase):
+    """ test slugify """
+
+    def setUp(self):
+        Tag.objects.create(name='Andrey can swim')
+
+    def test_tag_slug(self):
+        self.assertEqual(Tag.objects.first().slug, 'andrey-can-swim')
+
+
+class QuestionTestCase(TestCase):
+    """ test CRUD operations with Question """
+
+    def setUp(self):
+        u = get_user_model().objects.create_user("Andrey")
+        Profile.objects.create(user=u)
+        for i in range(3):
+            Tag.objects.create(name="tag_{}".format(i + 1))
+
+    def _create(self):
+        t = Question.objects.create(
+            title="Question",
+            description="some text",
+            author=Profile.objects.first(),
+        )
+        t.tags.add(*Tag.objects.all())
+        return t
+
+    def test_create_question(self):
+        t = self._create()
+        self.assertEqual(t, Question.objects.get(title='Question'))
+
