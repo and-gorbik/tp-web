@@ -8,5 +8,6 @@ env
 /static
 *.mo
 *.pot
+.DS_Store
 
 db.sqlite3

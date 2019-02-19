@@ -76,12 +76,11 @@ class Answer(models.Model):
 class Like(models.Model):
     target = None
     author = models.ForeignKey(Profile, on_delete=models.SET_NULL, null=True)
-    is_positive = models.BooleanField(default=None)
-    objects = managers.LikeManager()
+    is_positive = models.NullBooleanField(default=None)
+    objects = None
 
     class Meta:
         abstract = True
-
 
 class QuestionLike(Like):
     target = models.ForeignKey(Question, on_delete=models.CASCADE)
@@ -90,7 +89,6 @@ class QuestionLike(Like):
 class AnswerLike(Like):
     target = models.ForeignKey(Answer, on_delete=models.CASCADE)
     objects = managers.LikeManager()
-
 
 class Comment(models.Model):
     description = models.TextField(default="")
