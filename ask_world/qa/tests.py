@@ -1,6 +1,7 @@
 from django.test import TestCase
 from django.contrib.auth import get_user_model
 from .models import Profile, Question, Answer, QuestionLike, AnswerLike, Tag, Comment
+from . import forms
 
 class LikeTestCase(TestCase):
     """ test likes system """
@@ -232,4 +233,28 @@ class CommentTestCase(TestCase):
 #         self.assertEqual(qs.count(), 9)
 #         for i in range(10):
 #             self.assertEqual(qs[i], 9 - i)
+
+
+class QuestionFormTestCase(TestCase):
+
+    def test_valid_form(self):
+        data = {
+            'title': 'A new question',
+            'description': 'Text',
+            'tags': "good  , bad, Angry    ",
+        }
+        form = forms.QuestionForm(data=data) # QuestionForm(request.POST)
+        self.assertTrue(form.is_valid())
+        tags = form.cleaned_data.get('tags')
+        for t in tags:
+            self.assertIn(t, ['good', 'bad', 'angry'])
+
+    def test_invalid_form(self):
+        data = {
+            'tags': "good",
+        }
+        form = forms.QuestionForm(data=data)
+        self.assertFalse(form.is_valid())
+        self.assertTrue(form.errors)
+
 

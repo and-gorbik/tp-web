@@ -2,14 +2,14 @@ from django import forms
 from . import models
 from django.contrib.auth import get_user_model, authenticate
 
-class QuestionModelForm(forms.ModelForm):
+class QuestionForm(forms.ModelForm):
     tags = forms.CharField()
     class Meta:
         model = models.Question
         fields = ['title', 'description']
 
     def clean_tags(self):
-        tag_list = [t.strip().lower() for t in tags.split(',')]
+        tag_list = [t.strip().lower() for t in self.cleaned_data.get('tags').split(',')]
         if len(tag_list) < 3:
             raise forms.ValidationError("Add at least three tags")
         return tag_list
