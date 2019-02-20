@@ -4,7 +4,7 @@ from django.core.exceptions import ObjectDoesNotExist
 class QuestionManager(models.Manager):
 
     def best(self, limit=10):
-        return self.order_by('-like_counter')[:limit]
+        return self.order_by('-num_likes')[:limit]
 
 
     def last(self, limit=10):
@@ -12,13 +12,13 @@ class QuestionManager(models.Manager):
 
 
     def get_by_tagname(self, tagname):
-        return self.filter(tags__name=Tag.replace_spaces(tagname))
+        return self.filter(tags__name=tagname)
 
 
 class AnswerManager(models.Manager):
 
     def get_by_question(self, question, limit=10):
-        return self.filter(question=question).order_by('-like_counter')[:limit]
+        return self.filter(question=question).order_by('-num_likes')[:limit]
 
 
 class CommentManager(models.Manager):

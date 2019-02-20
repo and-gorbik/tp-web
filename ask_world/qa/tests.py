@@ -1,6 +1,6 @@
 from django.test import TestCase
 from django.contrib.auth import get_user_model
-from .models import Profile, Question, Answer, QuestionLike, AnswerLike, Tag
+from .models import Profile, Question, Answer, QuestionLike, AnswerLike, Tag, Comment
 
 class LikeTestCase(TestCase):
     """ test likes system """
@@ -133,15 +133,103 @@ class QuestionTestCase(TestCase):
             Tag.objects.create(name="tag_{}".format(i + 1))
 
     def _create(self):
-        t = Question.objects.create(
+        q = Question.objects.create(
             title="Question",
             description="some text",
             author=Profile.objects.first(),
         )
-        t.tags.add(*Tag.objects.all())
-        return t
+        q.tags.add(*Tag.objects.all())
+        return q
 
     def test_create_question(self):
-        t = self._create()
-        self.assertEqual(t, Question.objects.get(title='Question'))
+        q = self._create()
+        self.assertEqual(q, Question.objects.get(title='Question'))
+
+    def test_update_question(self):
+        q = self._create()
+        q.title = 'New question'
+        q.save(update_fields=['title'])
+        self.assertEqual(Question.objects.filter(title='New question').count(), 1)
+
+    def test_delete_question(self):
+        q = self._create()
+        q.delete()
+        self.assertEqual(Question.objects.filter(title='Question').count(), 0)
+
+
+class AnswerTestCase(TestCase):
+    """ test CRUD operations with Answer """
+
+    def setUp(self):
+        u = get_user_model().objects.create_user("Andrey")
+        Profile.objects.create(user=u)
+        for i in range(3):
+            Tag.objects.create(name="tag_{}".format(i + 1))
+        q = Question.objects.create(
+            title="Question",
+            description="some text",
+            author=Profile.objects.first(),
+        )
+        q.tags.add(*Tag.objects.all())
+
+    def _create(self):
+        a = Answer.objects.create(
+            description='some answer',
+            question=Question.objects.get(title='Question'),
+            author=Profile.objects.first(),
+        )
+        return a
+
+    def test_create_answer(self):
+        a = self._create()
+        self.assertEqual(a, Answer.objects.first())
+
+    def test_update_answer(self):
+        a = self._create()
+        a.description = 'other answer'
+        a.save(update_fields=['description'])
+        self.assertEqual(Answer.objects.filter(description='other answer').count(), 1)
+
+    def test_delete_answer(self):
+        a = self._create()
+        a.delete()
+        self.assertEqual(Answer.objects.filter(description='some answer').count(), 0)
+
+
+class CommentTestCase(TestCase):
+
+    def setUp(self):
+        p = Profile.objects.create(
+            user=get_user_model().objects.create_user("Andrey")
+        )
+        q = Question.objects.create(author=p)
+        Answer.objects.create(author=p, question=q)
+
+    def test_comment_create(self):
+        Comment.objects.create(
+            description='some comment',
+            author=Profile.objects.first(),
+            answer=Answer.objects.first(),
+        )
+        self.assertEqual(Comment.objects.first().description, 'some comment')
+
+    def test_comment_delete_cascade(self):
+        Answer.objects.first().delete()
+        self.assertEqual(Comment.objects.count(), 0)
+
+
+# class QuestionManagerTestCase(TestCase):
+
+#     def setUp(self):
+#         for i in range(3):
+#             tags = [Tag.objects.create(name=str(i)) for i in range(5)]
+#         for i in range(10):
+#             q = Question.objects.create(title=str(i), num_likes=i)
+#             q.tags.add(*tags)
+
+#     def test_best_questions(self):
+#         qs = Question.objects.best()
+#         self.assertEqual(qs.count(), 9)
+#         for i in range(10):
+#             self.assertEqual(qs[i], 9 - i)
 
