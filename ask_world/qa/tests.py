@@ -258,3 +258,28 @@ class QuestionFormTestCase(TestCase):
         self.assertTrue(form.errors)
 
 
+class UserLoginFormTestCase(TestCase):
+    def setUp(self):
+        user = get_user_model().objects.create_user('Andrey', password='12345')
+        Profile.objects.create(user=user)
+
+    def test_valid_form(self):
+        data = {
+            'username': 'Andrey',
+            'password': '12345',
+        }
+        form = forms.UserLoginForm(data=data)
+        self.assertTrue(form.is_valid())
+
+class UserCreationFormTestCase(TestCase):
+    def test_not_equal_passwords(self):
+        data = {
+            'username': 'Andrey',
+            'password1': '12345',
+            'password2': '',
+        }
+        form = forms.UserCreationForm(data=data)
+        self.assertFalse(form.is_valid())
+
+
+
